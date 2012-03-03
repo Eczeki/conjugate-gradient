@@ -44,8 +44,8 @@ double ** transpose(unsigned const rows , unsigned const columns ,  double const
 
 bool isPositiveDefinite(double ** matrix , std::size_t size , double x)
 {
-	//	x^T * A * x>0
-
+	/*	x^T * A * x>0 */
+	return true;
 }
 
 
@@ -53,13 +53,13 @@ bool isPositiveDefinite(double ** matrix , std::size_t size , double x)
 
 void ConjugateGradientMethod(const char * from , const char * to)
 {
-	std::size_t size=0;																//matrix[size][size]
-	size<<atoi(from);																//the first element in file is size of matrix
+	std::size_t size = 0;																//matrix[size][size]
+	size << atoi(from);																//the first element in file is size of matrix
 	
 	if(size<=0){	error("Wrong size of matrix in file...:",from);	}
 
 	double ** matrix=0;
-	createMatrix(matrix,size,size);													//Create matrix A
+	createMatrix(matrix, size, size);													//Create matrix A
 
 
 	deleteMatrix(matrix,size);														//delete matrix A
@@ -67,30 +67,32 @@ void ConjugateGradientMethod(const char * from , const char * to)
 
 int main(int argc , char * argv[])
 {
+	if(argc != 3)	{	error("Wrong number of arguments...");		}
 
 	//open input  file stream
-	std::ifstream from	(argv[1]);
+	std::ifstream from(argv[1]);
 	//open output file stream
-	std::ifstream to	(argv[2]);
+	std::ofstream to(argv[2]);
 
-	if(argc!=2)	{	error("Wrong number of arguments...");		}
 	if(!from)	{	error("Can't open input file" , argv[1]);	}
 	if(!to)		{	error("Can't open output file" , argv[2]);	}
-	
-	ConjugateGradientMethod(argv[1],argv[2]);
 
+	ConjugateGradientMethod(argv[1], argv[2]);
+
+	from.close();
+	to.close();
 }
 
-void error(const char * p1 , const char * p2="")
+void error(const char * p1 , const char * p2/* = ""*/)
 {
-	std::cerr<<p1<<" "<<p2<<"\n";
+	std::cerr << p1 << " " << p2 << "\n";
 	std::exit(1);
 }
 
 void createMatrix(double ** matrix , std::size_t const rows , std::size_t const columns  )
 {
 	matrix = new double * [rows];
-	for(std::size_t i=0 ; i<rows ; ++i)
+	for(std::size_t i = 0 ; i < rows ; ++i)
 	{
 		matrix[i]=new double[columns];
 	}
@@ -108,9 +110,9 @@ void deleteMatrix(double ** matrix , std::size_t size )
 
 bool isSymetric(double ** matrix , std::size_t size)
 {
-	for(std::size_t i=0 ; i<size ; ++i)
-		for(std::size_t j=0 ; j<size ; ++j)
-			if(matrix[i][j]!=matrix[j][i])
+	for(std::size_t i = 0 ; i < size ; ++i)
+		for(std::size_t j = 0 ; j < size ; ++j)
+			if(matrix[i][j] != matrix[j][i])
 				return false;
 	return true;
 }
@@ -121,9 +123,9 @@ double ** transpose(unsigned const rows , unsigned const columns ,  double const
 	createMatrix(_transpose,columns,rows);											//This function takes first:matrix,rows,columns but we must 
 																					//swap rows and columns becouse we must allocate memory for 
 																					//new matrix which is transpose.
-	for(unsigned i=0 ; i<rows ; ++i)
-		for(unsigned j=0 ; j<columns ; ++j)
-			_transpose[j][i]=matrix[i][j];
+	for(unsigned i = 0 ; i < rows ; ++i)
+		for(unsigned j = 0 ; j < columns ; ++j)
+			_transpose[j][i] = matrix[i][j];
 
 	return _transpose;
 }
