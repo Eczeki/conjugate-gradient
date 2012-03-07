@@ -2,40 +2,14 @@
 Author		:	Basiak Marcin, Pawe³ Nowak 
 University	:	AGH Wydzial In¿ynierii Metali i Inoformatyki Przemyslowej
 Topic		:	Conjugate Gradient Method
-
-A		matrix[n][n] - symetryczna,rzeczywista,dodatnio okreœlona
-Ax=b	gdzie x jest rozwi¹zaniem uk³adu 
-		Mówimy, ¿e dwa niezerowe wektory u i v s¹ sprzê¿one (wzglêdem A) jeœli:
-		u^T	* A * v == 0
-
-Macierz symetryczna			-	macierz kwadratowa której wyrazy po³o¿one symetrycznie
-								wzglêdem przek¹tnej g³ównej s¹ równe. 
-								A[i][j]==A[j][i] czyli A^T=A.
-								|2	1	3|
-								|1	6	7|
-								|3	7	9|
-
-Macierz rzeczywista			-	Kiedy wszystkie elementy s¹ liczbami rzeczywistymi.
-
-Macierz dodatnio okreœlona	-	nazywamy macierz A[n][n] która charaketyzuje siê:
-								|W przypadku gdy A jest macierz¹ rzeczywist¹	|
-								|A jest symetryczna i dla ka¿dego niezerowego	|
-								|wektora x nale¿y do R^n zachodzi x^TAx>0		|
-								|Co oznacza ¿e wszystkie wartoœci w³asne		|
-								|macierzy A s¹ dodatnie							|
-
-Metoda sprzê¿onych gradientów:
-Rozwi¹zanie uk³adu równañ przedstawiamy jako rozwi¹zanie zagadnienia minimalizacji funkcji E(x), 
-której gradient jest ró¿nic¹ pomiêdzy lew¹ a praw¹ stron¹ uk³adu równañ.
-
 */
 
 #include<iostream>
 #include<fstream>
-
+#include <iomanip>
 
 void error(const char * p1 , const char * p2="");												//Function, which prints error in console. 
-double ** createMatrix(/*double ** matrix , */std::size_t const rows , std::size_t const columns);		//Function, which create Matrix from file.
+double ** createMatrix(std::size_t const rows , std::size_t const columns);		//Function, which create Matrix from file.
 void deleteMatrix(double ** matrix	, std::size_t size );										//Function, which delete Matrix.
 bool isSymetric  (double ** matrix	, std::size_t size );										//Function, which check the matrix.
 bool isPositiveDefinite(double ** matrix , std::size_t size,double x);							//Function, which check whether matrix is positive definte
@@ -45,7 +19,7 @@ void ConjugateGradientMethod(const char * from , const char * to);
 double multiplyVectors(double ** v1, unsigned i1, double ** v2, unsigned i2, unsigned size);
 double multiply_pT_A_p(double ** p, double ** A, unsigned k, unsigned size);
 
-void StructuralTest(double **A, double * b);
+void StructuralTest(double **A, double * b, double ** x);
 
 int main(int argc , char * argv[])
 {
@@ -80,8 +54,8 @@ void ConjugateGradientMethod(const char * from , const char * to)
 	//**if(size<=0){	error("Wrong size of matrix in file...:",from);	}
 
 	double ** A = 0;
-	const std::size_t max_iter = 100000;		//max iteration
-	const int min_R = 0.0001;
+	const std::size_t max_iter = 20;		//max iteration
+	const int min_R = 0.001;
 	double ** r = 0;	//mo¿na tego te¿ nie robiæ na macierzy i nie pamiêtaæ wszystkich zmiennnych, tylko wykorzystaæ tablicê dwuelementow¹
 	double ** p = 0;	//j.w.
 	double ** x = 0;	//j.w.
@@ -89,13 +63,13 @@ void ConjugateGradientMethod(const char * from , const char * to)
 	r = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element	
 	p = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element
 	x = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element
-	double * alpha = new double[size];
-	double * beta = new double[size];
+	double * alpha = new double[max_iter];
+	double * beta = new double[max_iter];
 
 	double * b =  new double [size];
 
 	//testing
-	StructuralTest(A, b);
+	StructuralTest(A, b, x);
 
 	//r0 = b - Ax0
 	for(unsigned i = 0; i < size; i++){
@@ -104,10 +78,12 @@ void ConjugateGradientMethod(const char * from , const char * to)
 
 	//p0 = r0
 	for(unsigned i = 0; i < size; i++)
-		r[i][0] = p[i][0];
+		p[i][0] = r[i][0];
 
 	//algorithm
-	for(unsigned k = 0; k < max_iter; k++){
+	unsigned k;
+	bool flag = false;
+	for(k = 0; k < max_iter; k++){
 		alpha[k] = multiplyVectors(r, k, r, k, size) / multiply_pT_A_p(p, A, k, size);
 		for(unsigned i = 0; i < size; i++){
 			x[i][k+1] = x[i][k] + alpha[k] * p[i][k];
@@ -115,20 +91,31 @@ void ConjugateGradientMethod(const char * from , const char * to)
 		}
 
 		for(unsigned i = 0; i < size; i++){
-			if( r[i][k+1] < min_R) break;
+			if( abs(r[i][k+1]) < min_R){ 
+				flag = true;
+				break;
+			}
 		}
+		if (flag == true) break;
 
-		beta[k] = multiplyVectors(r, k, r, k, size);
+		beta[k] = multiplyVectors(r, k+1, r, k+1, size) / multiplyVectors(r, k, r, k, size);
 		for(unsigned i = 0; i < size; i++){
 			p[i][k+1] = r[i][k+1] + beta[k] * p[i][k];
 		}
+
+		std::cout << k << ".\t";
+		for(unsigned i = 0; i < size; i++){
+			std::cout << std::setprecision(5) << x[i][k+1] << "\t"; 
+		}
+		std::cout << "\n"; //**
 	}
 	//the result is vector x
- 
+	std::cout << k;
+
 	deleteMatrix(A, size);														//delete matrix A
 }
 
-void StructuralTest(double **A, double * b){
+void StructuralTest(double **A, double * b, double ** x){
 	A[0][0] = 2;
 	A[0][1] = 2;
 	A[0][2] = 1;
@@ -144,10 +131,14 @@ void StructuralTest(double **A, double * b){
 	b[0] = 9;
 	b[1] = 11;
 	b[2] = 7;
+
+	x[0][0] = 9999;
+	x[1][0] = 1;
+	x[2][0] = 100;
 }
 
 double multiply_pT_A_p(double ** p, double ** A, unsigned k, unsigned size){
-	double  tmp; 
+	double  tmp = 0; 
 	for(unsigned i=0; i < size; i++){
 		tmp += p[i][k] * multiply_Ax_rows_vector(A, i, p, i, k, size);
 	}
@@ -177,7 +168,7 @@ void error(const char * p1 , const char * p2)
 	std::exit(1);
 }
 
-double ** createMatrix(/*double ** matrix , */std::size_t const rows , std::size_t const columns  )
+double ** createMatrix(std::size_t const rows , std::size_t const columns  )
 {
 	double ** matrix = new double * [rows];
 	for(std::size_t i = 0 ; i < rows ; ++i)
