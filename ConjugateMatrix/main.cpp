@@ -35,7 +35,7 @@ której gradient jest ró¿nic¹ pomiêdzy lew¹ a praw¹ stron¹ uk³adu równañ.
 
 
 void error(const char * p1 , const char * p2="");												//Function, which prints error in console. 
-void createMatrix(double ** matrix , std::size_t const rows , std::size_t const columns);		//Function, which create Matrix from file.
+double ** createMatrix(/*double ** matrix , */std::size_t const rows , std::size_t const columns);		//Function, which create Matrix from file.
 void deleteMatrix(double ** matrix	, std::size_t size );										//Function, which delete Matrix.
 bool isSymetric  (double ** matrix	, std::size_t size );										//Function, which check the matrix.
 bool isPositiveDefinite(double ** matrix , std::size_t size,double x);							//Function, which check whether matrix is positive definte
@@ -44,6 +44,8 @@ double multiply_Ax_rows_vector(double ** A, unsigned rA, double ** x, unsigned  
 void ConjugateGradientMethod(const char * from , const char * to);
 double multiplyVectors(double ** v1, unsigned i1, double ** v2, unsigned i2, unsigned size);
 double multiply_pT_A_p(double ** p, double ** A, unsigned k, unsigned size);
+
+void StructuralTest(double **A, double * b);
 
 int main(int argc , char * argv[])
 {
@@ -54,8 +56,8 @@ int main(int argc , char * argv[])
 	//open output file stream
 	std::ofstream to(argv[2]);
 
-	if(!from)	{	error("Can't open input file" , argv[1]);	}
-	if(!to)		{	error("Can't open output file" , argv[2]);	}
+	//**if(!from)	{	error("Can't open input file" , argv[1]);	}
+	//**if(!to)		{	error("Can't open output file" , argv[2]);	}
 
 	ConjugateGradientMethod(argv[1], argv[2]);
 
@@ -72,9 +74,10 @@ bool isPositiveDefinite(double ** matrix , std::size_t size , double x)
 void ConjugateGradientMethod(const char * from , const char * to)
 {
 	std::size_t size = 0;																//matrix[size][size]
-	size << atoi(from);																//the first element in file is size of matrix
-	
-	if(size<=0){	error("Wrong size of matrix in file...:",from);	}
+	//**size << atoi(from);																//the first element in file is size of matrix
+	size = 3;
+
+	//**if(size<=0){	error("Wrong size of matrix in file...:",from);	}
 
 	double ** A = 0;
 	const std::size_t max_iter = 100000;		//max iteration
@@ -82,14 +85,17 @@ void ConjugateGradientMethod(const char * from , const char * to)
 	double ** r = 0;	//mo¿na tego te¿ nie robiæ na macierzy i nie pamiêtaæ wszystkich zmiennnych, tylko wykorzystaæ tablicê dwuelementow¹
 	double ** p = 0;	//j.w.
 	double ** x = 0;	//j.w.
-	createMatrix(A, size, size);													//Create matrix A
-	createMatrix(r, size, max_iter);		//rows are a vector, columns are a number of element	
-	createMatrix(p, size, max_iter);		//rows are a vector, columns are a number of element
-	createMatrix(x, size, max_iter);		//rows are a vector, columns are a number of element
+	A = createMatrix(size, size);													//Create matrix A
+	r = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element	
+	p = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element
+	x = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element
 	double * alpha = new double[size];
 	double * beta = new double[size];
 
 	double * b =  new double [size];
+
+	//testing
+	StructuralTest(A, b);
 
 	//r0 = b - Ax0
 	for(unsigned i = 0; i < size; i++){
@@ -122,6 +128,24 @@ void ConjugateGradientMethod(const char * from , const char * to)
 	deleteMatrix(A, size);														//delete matrix A
 }
 
+void StructuralTest(double **A, double * b){
+	A[0][0] = 2;
+	A[0][1] = 2;
+	A[0][2] = 1;
+	
+	A[1][0] = 2;
+	A[1][1] = 1;
+	A[1][2] = 2;
+
+	A[2][0] = 1;
+	A[2][1] = 2;
+	A[2][2] = 1;
+
+	b[0] = 9;
+	b[1] = 11;
+	b[2] = 7;
+}
+
 double multiply_pT_A_p(double ** p, double ** A, unsigned k, unsigned size){
 	double  tmp; 
 	for(unsigned i=0; i < size; i++){
@@ -147,20 +171,21 @@ double multiply_Ax_rows_vector(double ** A, unsigned rA, double ** x, unsigned  
 }
 
 
-void error(const char * p1 , const char * p2/* = ""*/)
+void error(const char * p1 , const char * p2)
 {
 	std::cerr << p1 << " " << p2 << "\n";
 	std::exit(1);
 }
 
-void createMatrix(double ** matrix , std::size_t const rows , std::size_t const columns  )
+double ** createMatrix(/*double ** matrix , */std::size_t const rows , std::size_t const columns  )
 {
-	matrix = new double * [rows];
+	double ** matrix = new double * [rows];
 	for(std::size_t i = 0 ; i < rows ; ++i)
 	{
 		matrix[i]=new double[columns];
 	}
 	if(matrix==0){	error("Bad memory allocation...");	}
+	else return matrix;
 }
 
 void deleteMatrix(double ** matrix , std::size_t size )
@@ -184,7 +209,7 @@ bool isSymetric(double ** matrix , std::size_t size)
 double ** transpose(unsigned const rows , unsigned const columns ,  double const ** matrix)
 {
 	double ** _transpose  = 0;
-	createMatrix(_transpose,columns,rows);											//This function takes first:matrix,rows,columns but we must 
+	_transpose = createMatrix(columns,rows);											//This function takes first:matrix,rows,columns but we must 
 																					//swap rows and columns becouse we must allocate memory for 
 																					//new matrix which is transpose.
 	for(unsigned i = 0 ; i < rows ; ++i)
