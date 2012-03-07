@@ -54,8 +54,8 @@ void ConjugateGradientMethod(const char * from , const char * to)
 	//**if(size<=0){	error("Wrong size of matrix in file...:",from);	}
 
 	double ** A = 0;
-	const std::size_t max_iter = 20;		//max iteration
-	const int min_R = 0.001;
+	const std::size_t max_iter = 1000;		//max iteration
+	const int min_R = 0.01;
 	double ** r = 0;	//mo¿na tego te¿ nie robiæ na macierzy i nie pamiêtaæ wszystkich zmiennnych, tylko wykorzystaæ tablicê dwuelementow¹
 	double ** p = 0;	//j.w.
 	double ** x = 0;	//j.w.
@@ -116,7 +116,7 @@ void ConjugateGradientMethod(const char * from , const char * to)
 }
 
 void StructuralTest(double **A, double * b, double ** x){
-	A[0][0] = 2;
+	/*A[0][0] = 2;
 	A[0][1] = 2;
 	A[0][2] = 1;
 	
@@ -134,7 +134,27 @@ void StructuralTest(double **A, double * b, double ** x){
 
 	x[0][0] = 9999;
 	x[1][0] = 1;
-	x[2][0] = 100;
+	x[2][0] = 100;*/
+
+	A[0][0] = 4;
+	A[0][1] = 1;
+	A[0][2] = 1;
+	
+	A[1][0] = 1;
+	A[1][1] = 2;
+	A[1][2] = 1;
+
+	A[2][0] = 2;
+	A[2][1] = 1;
+	A[2][2] = 1;
+
+	b[0] = 12;
+	b[1] = 9;
+	b[2] = 8;
+
+	x[0][0] = 1;
+	x[1][0] = 1;
+	x[2][0] = 1;
 }
 
 double multiply_pT_A_p(double ** p, double ** A, unsigned k, unsigned size){
