@@ -84,6 +84,7 @@ void ConjugateGradientMethod(const char * from , const char * to)
 	unsigned k;
 	bool flag = false;
 	for(k = 0; k < max_iter; k++){
+		if(abs(multiply_pT_A_p(p, A, k, size)) < 1e-12) break;
 		alpha[k] = multiplyVectors(r, k, r, k, size) / multiply_pT_A_p(p, A, k, size);
 		for(unsigned i = 0; i < size; i++){
 			x[i][k+1] = x[i][k] + alpha[k] * p[i][k];
@@ -108,9 +109,9 @@ void ConjugateGradientMethod(const char * from , const char * to)
 			std::cout << std::setprecision(5) << x[i][k+1] << "\t"; 
 		}
 		std::cout << "\n"; //**
+		//if(k % 10 == 0)	system("pause"); 
 	}
 	//the result is vector x
-	std::cout << k;
 
 	deleteMatrix(A, size);														//delete matrix A
 }
@@ -132,25 +133,25 @@ void StructuralTest(double **A, double * b, double ** x){
 	b[1] = 11;
 	b[2] = 7;
 
-	x[0][0] = 9999;
-	x[1][0] = 1;
-	x[2][0] = 100;*/
+	x[0][0] = 1000;
+	x[1][0] = 100;
+	x[2][0] = 1;*/
 
-	A[0][0] = 4;
-	A[0][1] = 1;
-	A[0][2] = 1;
+	A[0][0] = 3;
+	A[0][1] = 3;
+	A[0][2] = 4;
 	
 	A[1][0] = 1;
 	A[1][1] = 2;
-	A[1][2] = 1;
+	A[1][2] = 3;
 
-	A[2][0] = 2;
+	A[2][0] = 3;
 	A[2][1] = 1;
-	A[2][2] = 1;
+	A[2][2] = 2;
 
-	b[0] = 12;
-	b[1] = 9;
-	b[2] = 8;
+	b[0] = 38;
+	b[1] = 25;
+	b[2] = 20;
 
 	x[0][0] = 1;
 	x[1][0] = 1;
