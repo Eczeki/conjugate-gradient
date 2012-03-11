@@ -49,7 +49,7 @@ void ConjugateGradientMethod(const char * from , const char * to)
 {
 	std::size_t size = 0;																//matrix[size][size]
 	//**size << atoi(from);																//the first element in file is size of matrix
-	size = 3;
+	size = 2;
 
 	//**if(size<=0){	error("Wrong size of matrix in file...:",from);	}
 
@@ -84,7 +84,9 @@ void ConjugateGradientMethod(const char * from , const char * to)
 	unsigned k;
 	bool flag = false;
 	for(k = 0; k < max_iter; k++){
-		if(abs(multiply_pT_A_p(p, A, k, size)) < 1e-12) break;
+		if(abs(multiply_pT_A_p(p, A, k, size)) < 1e-12){ /*break;*/
+			error("Too small denominator r!");
+		}
 		alpha[k] = multiplyVectors(r, k, r, k, size) / multiply_pT_A_p(p, A, k, size);
 		for(unsigned i = 0; i < size; i++){
 			x[i][k+1] = x[i][k] + alpha[k] * p[i][k];
@@ -137,7 +139,7 @@ void StructuralTest(double **A, double * b, double ** x){
 	x[1][0] = 100;
 	x[2][0] = 1;*/
 
-	A[0][0] = 3;
+	/*A[0][0] = 3;
 	A[0][1] = 3;
 	A[0][2] = 4;
 	
@@ -155,7 +157,19 @@ void StructuralTest(double **A, double * b, double ** x){
 
 	x[0][0] = 1;
 	x[1][0] = 1;
-	x[2][0] = 1;
+	x[2][0] = 1;*/
+
+	A[0][0] = 4;
+	A[0][1] = 1;
+	
+	A[1][0] = 1;
+	A[1][1] = 3;
+
+	b[0] = 1;
+	b[1] = 2;
+
+	x[0][0] = 2;
+	x[1][0] = 1;
 }
 
 double multiply_pT_A_p(double ** p, double ** A, unsigned k, unsigned size){
