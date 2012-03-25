@@ -1,12 +1,14 @@
 /*
-Author		:	Basiak Marcin, Pawe³ Nowak 
+Author		:	Pawe³ Nowak, Basiak Marcin  
 University	:	AGH Wydzial In¿ynierii Metali i Inoformatyki Przemyslowej
 Topic		:	Conjugate Gradient Method
 */
 
-#include<iostream>
-#include<fstream>
+#include <iostream>
+#include <fstream>
 #include <iomanip>
+#include <pthread.h>
+#include <Windows.h>
 
 void error(const char * p1 , const char * p2="");												//Function, which prints error in console. 
 double ** createMatrix(std::size_t const rows , std::size_t const columns);		//Function, which create Matrix from file.
@@ -15,28 +17,56 @@ bool isSymetric  (double ** matrix	, std::size_t size );										//Function, wh
 bool isPositiveDefinite(double ** matrix , std::size_t size,double x);							//Function, which check whether matrix is positive definte
 double ** transpose(unsigned const rows , unsigned const columns ,  double const ** matrix);	//Function, which transpose matrix
 double multiply_Ax_rows_vector(double ** A, unsigned rA, double ** x, unsigned  rx, unsigned cx, unsigned size);
-void ConjugateGradientMethod(const char * from , const char * to);
+void * ConjugateGradientMethod(void *threadid);
 double multiplyVectors(double ** v1, unsigned i1, double ** v2, unsigned i2, unsigned size);
 double multiply_pT_A_p(double ** p, double ** A, unsigned k, unsigned size);
 
 void StructuralTest(double **A, double * b, double ** x);
+
+/*Common resorces*/
+	std::size_t size = 4;					//matrix[size][size]
+	double ** A = 0;
+	const std::size_t max_iter = 1000;		//max iteration
+	const int min_R = 0.01;
+	double ** r = 0;	//mo¿na tego te¿ nie robiæ na macierzy i nie pamiêtaæ wszystkich zmiennnych, tylko wykorzystaæ tablicê dwuelementow¹
+	double ** p = 0;	//j.w.
+	double ** x = 0;	//j.w.
+
+
+/*Thread params*/
+	const int NUM_THREADS = 4;
+
 
 int main(int argc , char * argv[])
 {
 	if(argc != 3)	{	error("Wrong number of arguments...");		}
 
 	//open input  file stream
-	std::ifstream from(argv[1]);
-	//open output file stream
-	std::ofstream to(argv[2]);
+	//std::ifstream from(argv[1]);
+	////open output file stream
+	//std::ofstream to(argv[2]);
 
-	//**if(!from)	{	error("Can't open input file" , argv[1]);	}
-	//**if(!to)		{	error("Can't open output file" , argv[2]);	}
+	long before = GetTickCount();
 
-	ConjugateGradientMethod(argv[1], argv[2]);
+	/*Create thread*/
+	pthread_t threads[NUM_THREADS];
+	int rc;
+	long t;  
 
-	from.close();
-	to.close();
+	for(t=0; t<NUM_THREADS; t++){
+		printf("In main: creating thread %ld\n", t);
+		rc = pthread_create(&threads[t], NULL, ConjugateGradientMethod, (void *)t);
+		if (rc){
+			printf("ERROR; return code from pthread_create() is %d\n", rc);
+		}
+	}
+
+	for(t=0; t<NUM_THREADS; t++)
+		pthread_join(threads[t], NULL);
+
+	std::cout << "\n\nTime: " << GetTickCount() - before << std::endl;
+
+	pthread_exit(NULL);
 }
 
 bool isPositiveDefinite(double ** matrix , std::size_t size , double x)
@@ -45,20 +75,23 @@ bool isPositiveDefinite(double ** matrix , std::size_t size , double x)
 	return true;
 }
 
-void ConjugateGradientMethod(const char * from , const char * to)
+void * ConjugateGradientMethod(void *threadid)
 {
-	std::size_t size = 0;																//matrix[size][size]
-	//**size << atoi(from);																//the first element in file is size of matrix
-	size = 4;
+	long tid;
+	tid = (long)threadid;
 
-	//**if(size<=0){	error("Wrong size of matrix in file...:",from);	}
+	//std::size_t size = 0;																//matrix[size][size]
+	////**size << atoi(from);																//the first element in file is size of matrix
+	//size = 4;
 
-	double ** A = 0;
-	const std::size_t max_iter = 1000;		//max iteration
-	const int min_R = 0.01;
-	double ** r = 0;	//mo¿na tego te¿ nie robiæ na macierzy i nie pamiêtaæ wszystkich zmiennnych, tylko wykorzystaæ tablicê dwuelementow¹
-	double ** p = 0;	//j.w.
-	double ** x = 0;	//j.w.
+	////**if(size<=0){	error("Wrong size of matrix in file...:",from);	}
+
+	//double ** A = 0;
+	//const std::size_t max_iter = 1000;		//max iteration
+	//const int min_R = 0.01;
+	//double ** r = 0;	//mo¿na tego te¿ nie robiæ na macierzy i nie pamiêtaæ wszystkich zmiennnych, tylko wykorzystaæ tablicê dwuelementow¹
+	//double ** p = 0;	//j.w.
+	//double ** x = 0;	//j.w.
 	A = createMatrix(size, size);													//Create matrix A
 	r = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element	
 	p = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element
@@ -116,7 +149,10 @@ void ConjugateGradientMethod(const char * from , const char * to)
 	}
 	//the result is vector x
 
-	deleteMatrix(A, size);														//delete matrix A
+	deleteMatrix(A, size);			//delete matrix A
+
+	pthread_exit(NULL);
+	return 0;
 }
 
 void StructuralTest(double **A, double * b, double ** x){
