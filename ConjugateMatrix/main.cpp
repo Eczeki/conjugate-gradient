@@ -20,7 +20,8 @@ double multiply_Ax_rows_vector(double ** A, unsigned rA, double ** x, unsigned  
 void * ConjugateGradientMethod(void *threadid);
 double multiplyVectors(double ** v1, unsigned i1, double ** v2, unsigned i2, unsigned size);
 double multiply_pT_A_p(double ** p, double ** A, unsigned k, unsigned size);
-
+void * CreateMethod1(void *threadid);
+void * CreateMethod2(void *threadid);
 void StructuralTest(double **A, double * b, double ** x);
 
 /*Common resorces*/
@@ -31,22 +32,30 @@ void StructuralTest(double **A, double * b, double ** x);
 	double ** r = 0;	//mo¿na tego te¿ nie robiæ na macierzy i nie pamiêtaæ wszystkich zmiennnych, tylko wykorzystaæ tablicê dwuelementow¹
 	double ** p = 0;	//j.w.
 	double ** x = 0;	//j.w.
+	unsigned k;
 
 
 /*Thread params*/
-	const int NUM_THREADS = 4;
+	const int NUM_THREADS = 1;
 
 
 int main(int argc , char * argv[])
 {
 	if(argc != 3)	{	error("Wrong number of arguments...");		}
 
-	//open input  file stream
-	//std::ifstream from(argv[1]);
-	////open output file stream
-	//std::ofstream to(argv[2]);
+	pthread_t thread1, thread2;
 
 	long before = GetTickCount();
+
+	if (pthread_create(&thread1, NULL, CreateMethod1, (void *)1)){
+		printf("ERROR; return code from pthread_create()");
+	}
+	if (pthread_create(&thread2, NULL, CreateMethod2, (void *)2)){
+		printf("ERROR; return code from pthread_create()");
+	}
+
+	pthread_join(thread1, NULL);
+	pthread_join(thread2, NULL);
 
 	/*Create thread*/
 	pthread_t threads[NUM_THREADS];
@@ -69,6 +78,28 @@ int main(int argc , char * argv[])
 	pthread_exit(NULL);
 }
 
+void * CreateMethod1(void *threadid){
+	long tid;
+	tid = (long)threadid;
+
+	A = createMatrix(size, size);													//Create matrix A
+	r = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element
+
+	pthread_exit(NULL);
+	return 0;
+}
+
+void * CreateMethod2(void *threadid){
+	long tid;
+	tid = (long)threadid;
+
+	p = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element
+	x = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element
+
+	pthread_exit(NULL);
+	return 0;
+}
+
 bool isPositiveDefinite(double ** matrix , std::size_t size , double x)
 {
 	/*	x^T * A * x>0 */
@@ -86,16 +117,10 @@ void * ConjugateGradientMethod(void *threadid)
 
 	////**if(size<=0){	error("Wrong size of matrix in file...:",from);	}
 
-	//double ** A = 0;
-	//const std::size_t max_iter = 1000;		//max iteration
-	//const int min_R = 0.01;
-	//double ** r = 0;	//mo¿na tego te¿ nie robiæ na macierzy i nie pamiêtaæ wszystkich zmiennnych, tylko wykorzystaæ tablicê dwuelementow¹
-	//double ** p = 0;	//j.w.
-	//double ** x = 0;	//j.w.
-	A = createMatrix(size, size);													//Create matrix A
-	r = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element	
-	p = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element
-	x = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element
+	////A = createMatrix(size, size);													//Create matrix A
+	////r = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element	
+	////p = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element
+	////x = createMatrix(size, max_iter);		//rows are a vector, columns are a number of element
 	double * alpha = new double[max_iter];
 	double * beta = new double[max_iter];
 
@@ -114,7 +139,6 @@ void * ConjugateGradientMethod(void *threadid)
 		p[i][0] = r[i][0];
 
 	//algorithm
-	unsigned k;
 	bool flag = false;
 	for(k = 0; k < max_iter; k++){
 		if(abs(multiply_pT_A_p(p, A, k, size)) < 1e-12){ 
